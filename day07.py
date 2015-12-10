@@ -94,7 +94,7 @@ def run_instructions():
             register[address] = result
 
 
-instructions = open("day7_input").read().split("\n")
+instructions = open("day07_input").read().split("\n")
 register = dict()
 
 while "a" not in register:

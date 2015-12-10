@@ -44,7 +44,7 @@
 
 import re
 
-words = open("day8_input").read()
+words = open("day08_input").read()
 code_literal_len = len(words.replace("\n", ""))
 
 unesc = words.replace("\"\n\"", "")[1:-1]

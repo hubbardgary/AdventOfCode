@@ -77,6 +77,6 @@ def get_part_2_locations(directions):
 
     return visited_locations
 
-data = open("day3_input").read()
+data = open("day03_input").read()
 print("Part 1 solution = {0}".format(len(get_part_1_locations(data))))
 print("Part 2 solution = {0}".format(len(get_part_2_locations(data))))

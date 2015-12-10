@@ -39,7 +39,7 @@
 # ()()) causes him to enter the basement at character position 5.
 # What is the position of the character that causes Santa to first enter the basement?
 
-instructions = open("day1_input").read()
+instructions = open("day01_input").read()
 
 # Part 1
 floor_no = instructions.count('(') - instructions.count(')')

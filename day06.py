@@ -45,7 +45,7 @@
 # turn on 0,0 through 0,0 would increase the total brightness by 1.
 # toggle 0,0 through 999,999 would increase the total brightness by 2000000.
 
-instructions = open("day6_input").read().split("\n")
+instructions = open("day06_input").read().split("\n")
 
 grid_part1 = [[0 for x in range(1000)] for x in range(1000)]
 grid_part2 = [[0 for x in range(1000)] for x in range(1000)]

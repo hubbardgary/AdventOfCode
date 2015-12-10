@@ -61,7 +61,7 @@ def nice_string_part2(string):
     return False
 
 
-data = open("day5_input").read()
+data = open("day05_input").read()
 nice_count_1 = 0
 nice_count_2 = 0
 

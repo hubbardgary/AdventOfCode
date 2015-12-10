@@ -37,7 +37,7 @@
 
 import itertools
 
-distances = open("day9_input").read().split("\n")
+distances = open("day09_input").read().split("\n")
 vertices = {}
 
 # Build dictionary of dictionaries mapping distance between each location

@@ -49,7 +49,7 @@ def get_ribbon_length(l, w, h):
 
     return ribbon + bow
 
-boxes = open("day2_input").read().split("\n")
+boxes = open("day02_input").read().split("\n")
 paper_size = 0
 ribbon_length = 0
 for box in boxes:
