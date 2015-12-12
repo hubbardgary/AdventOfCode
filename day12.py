@@ -44,7 +44,7 @@ data = json.load(open("day12_input"))
 
 all_nums = []
 non_red_nums = []
-sum_nums(data, all_nums, [])
+sum_nums(data, all_nums, "")
 sum_nums(data, non_red_nums, "red")
 
 print(sum(all_nums))
