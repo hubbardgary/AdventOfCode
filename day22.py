@@ -122,7 +122,16 @@
 # You start with 50 hit points and 500 mana points. The boss's actual stats are in your puzzle input. What is the least
 # amount of mana you can spend and still win the fight? (Do not include mana recharge effects as "spending" negative
 # mana.)
-import itertools
+#
+# --- Part Two ---
+#
+# On the next run through the game, you increase the difficulty to hard.
+#
+# At the start of each player turn (before any other effects apply), you lose 1 hit point. If this brings you to or
+# below 0 hit points, you lose.
+#
+# With the same starting stats for you and the boss, what is the least amount of mana you can spend and still win the
+# fight?
 import random
 
 spell_names = ["Magic Missile", "Drain", "Shield", "Poison", "Recharge"]
@@ -199,19 +208,19 @@ def damage(spells, new_spell):
     return d
 
 
-def armour(spells):
-    a = 0
-    for s in spells:
-        a += spell_armour[s]
-    return a
-
-
 def heal(spells, new_spell):
     h = 0
     for s in spells:
         h += spell_heal[s]
     h += spell_instant_heal[new_spell] if new_spell is not "" else 0
     return h
+
+
+def armour(spells):
+    a = 0
+    for s in spells:
+        a += spell_armour[s]
+    return a
 
 
 def mana(spells):
@@ -233,90 +242,84 @@ def update_spell_remaining(spells):
     return spells
 
 
-active_spells = list()
+def fight(hard_mode):
+    cheapest_win = float("inf")
+    cheapest_moves = []
 
-boss_health_points = 51
-boss_attack_points = 9
+    for i in range(0, 20000):
+        active_spells = list()
 
-player_health_points = 50
-player_mana_points = 500
-spent_mana = 0
-moves = []
-cheapest_win = 9999
-cheapest_moves = []
+        boss_health_points = 51
+        boss_attack_points = 9
 
-# spell_prods = list(itertools.product(spell_names, repeat=6))
-# print(spell_prods)
+        player_health_points = 50
+        player_mana_points = 500
 
-# These are to test the example on website
-#order = ['Recharge', 'Shield', 'Drain', 'Poison', 'Magic Missile', 'Magic Missile', 'Magic Missile']
-#a = 0
-for i in range(0, 100000):
-    #print(i)
-    while boss_health_points > 0 and player_health_points > 0:
-        # If you can't afford to cast any spells, you lose
-        if player_mana_points < min(spell_cost.values()):
-            player_health_points = 0
-            break
+        spent_mana = 0
+        moves = []
 
-        # Hard mode
-        player_health_points -= 1
-        if player_health_points < 1:
-            break
+        # Reset remaining spell durations
+        for s in spell_names:
+            spell_remaining[s] = spell_duration[s]
 
-        # Player turn - existing spells
-        boss_health_points -= damage(active_spells, "")
-        player_health_points += heal(active_spells, "")
-        player_mana_points += mana(active_spells)
-        active_spells = update_spell_remaining(active_spells)
+        while boss_health_points > 0 and player_health_points > 0:
+            # If you can't afford to cast any spells, you lose
+            if player_mana_points < min(spell_cost.values()):
+                break
 
-        # cast new spell
+            if hard_mode:
+                player_health_points -= 1
+                if player_health_points < 1:
+                    break
 
-        random.shuffle(spell_names)
-        current_spell = spell_names[0]
-        while current_spell in active_spells:
+            # --PLAYER'S TURN--
+            # Apply effect of existing spells
+            boss_health_points -= damage(active_spells, "")
+            player_health_points += heal(active_spells, "")
+            player_mana_points += mana(active_spells)
+            active_spells = update_spell_remaining(active_spells)
+
+            # Select next spell. Generating all combinations methodically is slow and tricky
+            # so let's just do it randomly and hope we stumble across the answer
             random.shuffle(spell_names)
             current_spell = spell_names[0]
-        #current_spell = order[a]
-        #a += 1
-        if player_mana_points >= spell_cost[current_spell] and current_spell not in active_spells:
-            player_mana_points -= spell_cost[current_spell]
-            spent_mana += spell_cost[current_spell]
-            boss_health_points -= damage([], current_spell)
-            player_health_points += heal([], current_spell)
-            # Add current spell so effect is applied next time
-            if spell_duration[current_spell] > 0:
-                active_spells.append(current_spell)
-            moves.append(current_spell)
+            while current_spell in active_spells:
+                # Can't cast a spell that's already active
+                random.shuffle(spell_names)
+                current_spell = spell_names[0]
 
+            if player_mana_points >= spell_cost[current_spell] and current_spell not in active_spells:
+                # Cast spell
+                player_mana_points -= spell_cost[current_spell]
+                spent_mana += spell_cost[current_spell]
 
-        # Boss turn
-        boss_health_points -= damage(active_spells, "")
-        player_mana_points += mana(active_spells)
-        active_spells = update_spell_remaining(active_spells)
+                # Apply immediate damage and healing
+                boss_health_points -= damage([], current_spell)
+                player_health_points += heal([], current_spell)
+
+                # Add to active_spells so effect is applied next time
+                if spell_duration[current_spell] > 0:
+                    active_spells.append(current_spell)
+                moves.append(current_spell)
+
+            # --BOSS'S TURN--
+            # Apply effects first
+            boss_health_points -= damage(active_spells, "")
+            player_mana_points += mana(active_spells)
+            active_spells = update_spell_remaining(active_spells)
+
+            if boss_health_points < 1:
+                break
+
+            # Boss attacks
+            player_health_points -= max(1, boss_attack_points - armour(active_spells))
 
         if boss_health_points < 1:
-            break
+            if spent_mana < cheapest_win:
+                cheapest_win = spent_mana
+                cheapest_moves = moves
 
-        # Boss attacks
-        player_health_points -= max(1, boss_attack_points - armour(active_spells))
+    return cheapest_win, cheapest_moves
 
-    if boss_health_points < 1:
-        #print("Boss dead: {0} - {1}".format(spent_mana, moves))
-        if spent_mana < cheapest_win:
-            cheapest_win = spent_mana
-            cheapest_moves = moves
-    # elif player_health_points < 1:
-    #     print("Player dead: {0} - {1}".format(spent_mana, moves))
-
-    # Resurrect and reset
-    boss_health_points = 51
-    player_health_points = 50
-    player_mana_points = 500
-    spent_mana = 0
-    active_spells = []
-    moves = []
-    for s in spell_names:
-        spell_remaining[s] = spell_duration[s]
-
-print("Cheapest win is {0} with {1}".format(cheapest_win, cheapest_moves))
+print("Part 1: Cheapest win is {0}".format(fight(False)))
+print("Part 2: Cheapest win on hard mode is {0}".format(fight(True)))
